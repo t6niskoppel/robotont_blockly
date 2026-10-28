@@ -4,6 +4,7 @@ import { Runner } from './runtime.js';
 import { RobotConnection } from '../ros_connection.js';
 import { RobotControl } from '../robot_control.js';
 import { RobotViewer } from '../viewer.js';
+import { previews, savePreviews } from '../previews.js';
 
 const element = (id) => document.getElementById(id);
 const workspace = Blockly.inject('workspace', {
@@ -19,6 +20,18 @@ const control = new RobotControl(connection);
 const viewer = new RobotViewer(element('scene'), connection);
 element('follow').onclick = () => viewer.follow();
 element('top').onclick = () => viewer.topDown();
+if (!previews.scan) viewer.setScan(false);
+element('scan-toggle').onclick = () => {
+  previews.scan = !previews.scan;
+  savePreviews();
+  viewer.setScan(previews.scan);
+  render();
+};
+element('camera-toggle').onclick = () => {
+  previews.rgb = !previews.rgb;
+  savePreviews();
+  render();
+};
 let runner = null;
 const log = (message) => {
   const item = document.createElement('li');
@@ -130,13 +143,17 @@ function render() {
       ? `Connected to ${robot.name} · ${robot.generation === '3' ? 'Gen 3' : robot.generation === '3lite' ? 'Gen 3 Lite' : 'Robotont'}${robot.ns ? ' · ' + robot.ns : ''}`
       : 'No robot found on this ROS domain';
   element('run').disabled = !connection.ready || Boolean(runner);
-  const source = robot?.topics.rgb
-    ? connection.videoUrl(robot.topics.rgb, {
-        width: 320,
-        height: 180,
-        transport: robot.rgb_transport || 'raw',
-      })
-    : '';
+  element('scan-toggle').textContent = previews.scan ? 'Hide lidar' : 'Show lidar';
+  element('camera-toggle').textContent = previews.rgb ? 'Hide camera' : 'Show camera';
+  element('camera-toggle').hidden = !robot?.topics.rgb;
+  const source =
+    robot?.topics.rgb && previews.rgb
+      ? connection.videoUrl(robot.topics.rgb, {
+          width: 320,
+          height: 180,
+          transport: robot.rgb_transport || 'raw',
+        })
+      : '';
   if (element('camera').dataset.source !== source) {
     element('camera').dataset.source = source;
     if (source) element('camera').src = source;
@@ -144,7 +161,11 @@ function render() {
   }
   element('camera').hidden = !source;
   element('camera-note').hidden = Boolean(source) && Boolean(element('camera').naturalWidth);
-  element('camera-note').textContent = source ? 'Waiting for camera frames…' : 'No camera';
+  element('camera-note').textContent = source
+    ? 'Waiting for camera frames…'
+    : robot?.topics.rgb
+      ? 'Camera preview off'
+      : 'No camera';
 }
 function showDistances() {
   element('distances').replaceChildren();

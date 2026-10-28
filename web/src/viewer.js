@@ -29,6 +29,7 @@ export class RobotViewer {
     this.tf.addEventListener('frames', () => this.tf.setFixedFrame(this.base()));
     this.layers = [];
     this.showPoints = false; // rosbridge is slow with whole point clouds, so they are opt-in
+    this.showScan = true;
     new ResizeObserver(() => this.viewer.resize(element.clientWidth, element.clientHeight)).observe(
       element,
     );
@@ -100,7 +101,7 @@ export class RobotViewer {
     const rootObject = new THREE.Group();
     this.viewer.scene.add(rootObject);
     this.layerObjects.push(rootObject);
-    if (robot.topics.scan) {
+    if (robot.topics.scan && this.showScan) {
       this.layers.push(
         new ROS3D.LaserScan({
           ros: this.connection.ros,
@@ -129,6 +130,10 @@ export class RobotViewer {
   }
   setPoints(on) {
     this.showPoints = on;
+    this.show();
+  }
+  setScan(on) {
+    this.showScan = on;
     this.show();
   }
   // Looking down from behind the robot: forward (x) is up on the screen. 'Follow' keeps a slight tilt.

@@ -48,7 +48,10 @@
               <article class="card">
                 <div class="card-title">
                   <h3>RGB camera</h3>
-                  <span id="rgb-status" class="tag">No data</span>
+                  <span
+                    ><span id="rgb-status" class="tag">No data</span>
+                    <button id="rgb-toggle" class="secondary small">Hide</button></span
+                  >
                 </div>
                 <div class="camera">
                   <img id="rgb" alt="Live robot RGB camera" hidden />
@@ -58,7 +61,10 @@
               <article class="card">
                 <div class="card-title">
                   <h3>Depth camera</h3>
-                  <span id="depth-status" class="tag">No data</span>
+                  <span
+                    ><span id="depth-status" class="tag">No data</span>
+                    <button id="depth-toggle" class="secondary small">Hide</button></span
+                  >
                 </div>
                 <div class="camera">
                   <img id="depth" alt="Live depth image" hidden />
@@ -73,6 +79,7 @@
                   ><label class="range-label" id="points-label" hidden
                     ><input type="checkbox" id="points" /> Point cloud (heavy)</label
                   >
+                  <button id="scan-toggle" class="secondary small">Hide</button>
                   <button id="view-follow" class="secondary small">Follow</button>
                   <button id="view-top" class="secondary small">Top down</button></span
                 >

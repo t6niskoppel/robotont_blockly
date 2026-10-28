@@ -38,7 +38,7 @@ function setup(context) {
     { ns: 'rt5', topics: { scan: '/rt5/scan' } },
     { ns: 'rt6', topics: { scan: '/rt6/scan' } },
   ];
-  const discover = (entries) => find('/web/robots').receive({ data: JSON.stringify(entries) });
+  const discover = (entries) => find('web/robots').receive({ data: JSON.stringify(entries) });
   discover(robots);
   return { connection, control, ros, find, discover, robots };
 }
@@ -46,17 +46,17 @@ function setup(context) {
 test('disconnect cancels movement; reconnect requires a fresh command', (context) => {
   const { connection, control, ros, find } = setup(context);
   control.move('front', 0.1);
-  assert.equal(find('/web/command').sent.length, 1);
+  assert.equal(find('web/command').sent.length, 1);
   ros.emit('close');
   context.mock.timers.tick(3000);
-  assert.equal(find('/web/command').sent.length, 1);
+  assert.equal(find('web/command').sent.length, 1);
   assert.throws(() => control.move('front', 0.1), /No robot connected/);
   ros.emit('connection');
   context.mock.timers.tick(500);
-  assert.equal(find('/web/command').sent.length, 1);
+  assert.equal(find('web/command').sent.length, 1);
   assert.equal(connection.ready, true);
   control.move('front', 0.1);
-  assert.equal(find('/web/command').sent.length, 2);
+  assert.equal(find('web/command').sent.length, 2);
 });
 
 test('switching stops the previous robot without delayed stops on the next one', (context) => {
@@ -65,8 +65,8 @@ test('switching stops the previous robot without delayed stops on the next one',
   connection.select('rt6');
   control.turn('left', 0.2);
   context.mock.timers.tick(200);
-  assert.deepEqual(find('/web/stop').sent, [{ robot: 'rt5' }]);
-  assert.equal(find('/web/command').sent.at(-1).robot, 'rt6');
+  assert.deepEqual(find('web/stop').sent, [{ robot: 'rt5' }]);
+  assert.equal(find('web/command').sent.at(-1).robot, 'rt6');
 });
 
 test('a disappearing robot cancels its program before automatic selection', async (context) => {
@@ -80,8 +80,8 @@ test('a disappearing robot cancels its program before automatic selection', asyn
   discover([robots[1]]);
   assert.equal(await result, 'stopped');
   assert.equal(connection.selected, 'rt6');
-  assert.ok(find('/web/command').sent.every((command) => command.robot === 'rt5'));
-  assert.ok(find('/web/stop').sent.every((command) => command.robot === 'rt5'));
+  assert.ok(find('web/command').sent.every((command) => command.robot === 'rt5'));
+  assert.ok(find('web/stop').sent.every((command) => command.robot === 'rt5'));
 });
 
 test('a sensor-only connection never publishes commands on selection', (context) => {
@@ -101,7 +101,7 @@ test('a sensor-only connection never publishes commands on selection', (context)
   ros.emit('connection');
   connection.select('rt5');
   connection.select('rt6');
-  assert.deepEqual(names, ['/web/robots', '/web/distances']);
+  assert.deepEqual(names, ['web/robots', 'web/distances']);
 });
 
 test('camera URLs preserve ROS topic slashes for web_video_server', (context) => {
@@ -130,7 +130,7 @@ test('commands publish through the installed roslib Topic implementation', (cont
   const publications = sent.filter((message) => message.op === 'publish');
   assert.deepEqual(
     publications.map((message) => message.topic),
-    ['/web/command', '/web/led', '/web/stop'],
+    ['web/command', 'web/led', 'web/stop'],
   );
   assert.deepEqual(JSON.parse(publications[0].msg.data), { robot: 'rt5', vx: 0.1, vy: 0, wz: 0 });
 });

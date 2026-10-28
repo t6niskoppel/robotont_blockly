@@ -2,6 +2,7 @@ import './style.css';
 import { RobotConnection } from './ros_connection.js';
 import { RobotControl } from './robot_control.js';
 import { RobotViewer } from './viewer.js';
+import { previews, savePreviews } from './previews.js';
 
 const TERMINAL_PORT = Number(new URLSearchParams(location.search).get('terminal')) || 7681;
 
@@ -76,11 +77,12 @@ function setImages() {
     ['depth', robot?.topics.depth],
   ]) {
     const image = element(kind),
-      source = name
-        ? connection.videoUrl(name, {
-            transport: kind === 'rgb' ? robot.rgb_transport || 'raw' : 'raw',
-          })
-        : '';
+      source =
+        name && previews[kind]
+          ? connection.videoUrl(name, {
+              transport: kind === 'rgb' ? robot.rgb_transport || 'raw' : 'raw',
+            })
+          : '';
     if (image.dataset.source !== source) {
       image.dataset.source = source;
       image.dataset.since = performance.now();
@@ -88,8 +90,14 @@ function setImages() {
       else image.removeAttribute('src');
     }
     image.hidden = !source;
-    element(kind + '-placeholder').hidden = Boolean(source);
-    if (!source) element(kind + '-status').textContent = 'No data';
+    const placeholder = element(kind + '-placeholder'),
+      off = Boolean(name) && !previews[kind];
+    placeholder.dataset.text ??= placeholder.textContent;
+    placeholder.textContent = off ? 'Preview off' : placeholder.dataset.text;
+    placeholder.hidden = Boolean(source);
+    if (!source) element(kind + '-status').textContent = off ? 'Off' : 'No data';
+    element(kind + '-toggle').textContent = previews[kind] ? 'Hide' : 'Show';
+    element(kind + '-toggle').hidden = !name;
   }
   renderImageStatus();
 }
@@ -307,6 +315,22 @@ function renderDistances() {
   }
 }
 element('points').onchange = () => viewer.setPoints(element('points').checked);
+for (const kind of ['rgb', 'depth'])
+  element(kind + '-toggle').onclick = () => {
+    previews[kind] = !previews[kind];
+    savePreviews();
+    setImages();
+  };
+const renderScanToggle = () =>
+  (element('scan-toggle').textContent = previews.scan ? 'Hide' : 'Show');
+element('scan-toggle').onclick = () => {
+  previews.scan = !previews.scan;
+  savePreviews();
+  renderScanToggle();
+  viewer.setScan(previews.scan);
+};
+renderScanToggle();
+if (!previews.scan) viewer.setScan(false);
 element('view-follow').onclick = () => viewer.follow();
 element('view-top').onclick = () => viewer.topDown();
 connection.addEventListener('beforeselect', () => {

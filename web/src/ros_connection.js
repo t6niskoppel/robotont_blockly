@@ -59,7 +59,8 @@ export class RobotConnection extends EventTarget {
       subscription.subscribe((message) => receive(JSON.parse(message.data)));
       this.subscriptions.push(subscription);
     };
-    subscribe('/web/robots', (robots) => {
+    // Relative names resolve in the namespace of this page's rosbridge, so only its own robot answers
+    subscribe('web/robots', (robots) => {
       const previousTopics = JSON.stringify(this.robot?.topics);
       this.robots = robots;
       if (!robots.some((robot) => robot.ns === this.selected)) {
@@ -69,7 +70,7 @@ export class RobotConnection extends EventTarget {
       }
       this.emit('robots');
     });
-    subscribe('/web/distances', (distances) => {
+    subscribe('web/distances', (distances) => {
       this.distances = distances;
       this.emit('distances');
     });

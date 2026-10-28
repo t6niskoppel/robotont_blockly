@@ -10,9 +10,9 @@ export class RobotControl {
         name,
         messageType: 'std_msgs/msg/String',
       });
-    this.commandTopic = publisher('/web/command');
-    this.stopTopic = publisher('/web/stop');
-    this.ledTopic = publisher('/web/led');
+    this.commandTopic = publisher('web/command');
+    this.stopTopic = publisher('web/stop');
+    this.ledTopic = publisher('web/led');
     connection.addEventListener('beforeselect', () => this.stop());
     connection.addEventListener('connection', () => {
       if (!connection.connected) this.cancelHeartbeat();
